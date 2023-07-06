@@ -13,8 +13,8 @@ import {
 import { signature } from "./signature.js";
 
 export class WSAbort extends Error {
-  public constructor(msg: string, cause?: Event) {
-    super(msg, { cause });
+  public constructor(msg: string) {
+    super(msg);
     this.name = "AbortError";
   }
 }
@@ -641,7 +641,7 @@ export class WebSocketClient extends EventEmitter {
 
     const result = await this.#send("private", payload, { predicate, signal });
     if (!result.data.success) {
-      throw new Error(result.data.message, { cause: result });
+      throw new Error(result.data.message);
     }
 
     return result as ISuccessAuth;
@@ -861,10 +861,10 @@ export class WebSocketClient extends EventEmitter {
           }
         },
 
-        abort: (event: Event): void => {
+        abort: (): void => {
           listeners.remove_listeners();
 
-          reject(new WSAbort("The request has been aborted", event));
+          reject(new WSAbort("The request has been aborted"));
         },
 
         add_listeners: (): void => {
@@ -989,11 +989,7 @@ export class WebSocketClient extends EventEmitter {
             const jsondata = JSON.parse(data) as IErrorMessage | IMessage;
 
             if ("event" in jsondata && jsondata.event === "error") {
-              this.emit(
-                "error",
-                new Error(jsondata.message, { cause: jsondata }),
-                type
-              );
+              this.emit("error", new Error(jsondata.message), type);
 
               return;
             }
@@ -1002,9 +998,7 @@ export class WebSocketClient extends EventEmitter {
           } catch (error) {
             this.emit(
               "error",
-              new Error("Message count not be parsed by `JSON.parse`", {
-                cause: error,
-              }),
+              new Error("Message count not be parsed by `JSON.parse`"),
               type
             );
           }
